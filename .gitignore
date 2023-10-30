@@ -1,0 +1,8 @@
+/crosslearning/data/*
+/output/*
+brain_data_processing.ipynb
+/cross_learning/unit_test_parametric.py
+main_brain.ipynb
+main_exps.ipynb
+plots.ipynb
+
