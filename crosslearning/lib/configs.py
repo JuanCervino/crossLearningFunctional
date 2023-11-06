@@ -6,7 +6,7 @@ start = 77
 mid = 110
 stop = 117
 datasets = get_SIR_covid_datasets(countries, start, mid, stop)
-epochs = 5000
+epochs = 10000
 logg_every_e = 200
 
 estimator_vals = {}

@@ -76,7 +76,7 @@ for idx, country in enumerate(countries):
     plt.plot(estimator['CLFunctional'].betaIndependent[idx],estimator['CLFunctional'].gammaIndependent[idx],'^',label=country+' cl fun', color=colorlist[idx])
 
 plt.legend(ncol=3)
-plt.savefig('figs.pdf')
+plt.savefig('crosslearning/output/figs.pdf')
 
 plt.figure(figsize=(12, 4))
 fig, axs = plt.subplots(2)
@@ -93,4 +93,4 @@ axs[1].set_title('Constraint Satisfaction')
 plt.subplots_adjust(wspace=0.5)  # Adjust the horizontal space between figures
 
 # Show the figures
-plt.savefig('duals.pdf')
+plt.savefig('crosslearning/output/duals.pdf')

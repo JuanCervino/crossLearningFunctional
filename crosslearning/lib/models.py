@@ -165,7 +165,7 @@ class estimatorCovid:
             self.beta = self.betaCentral
             self.gamma = self.gammaCentral
             rollCentral = self.getRolloutMatrix(x_0, data.shape[1])
-            constraintSlack = constraintSlack + [np.linalg.norm(roll-rollCentral)**2]
+            constraintSlack = constraintSlack + [np.linalg.norm(roll-rollCentral)**2/population]
         return constraintSlack
 
     def fitFunctional(self, datasets, epsilon):
@@ -225,6 +225,7 @@ class estimatorCovid:
                     self.logger[idx]['constraints'] += [constraints[idx]]
 
         pass
+
     def evaluate(self, X):
         x_0 = X[:,0]
         roll = self.getRolloutMatrix(x_0, X.shape[1])
