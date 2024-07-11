@@ -94,35 +94,41 @@ class estimatorCovid:
         return lambdas, a
 
     def projectParametric(self):
-        dualSteps = 100
+        dualSteps = 3000
         mus = np.zeros(len(self.betaIndependent))
         theta_g = np.array([self.betaCentral, self.gammaCentral])
         theta_i = np.array([self.betaIndependent,
                            self.gammaIndependent])
         lambdas, a = self.getLambdaA(mus)
         theta_g_aux = a*(theta_g+theta_i@lambdas)
-        theta_i_aux = np.multiply(theta_i, (1-lambdas))
-        + theta_g_aux[:,np.newaxis]@lambdas[np.newaxis,:]
+        theta_i_aux = np.multiply(theta_i, (1-lambdas)) + theta_g_aux[:,np.newaxis]@lambdas[np.newaxis,:]
         for i in range(dualSteps):
             # Update value of mu
+            # print(i,'lambdas',mus)
+
             val = theta_i_aux-theta_g_aux[:,np.newaxis]
             # print(np.power(np.linalg.norm(val, axis = 0),2))
-            mus = mus + self.eta_dual*(np.power(np.linalg.norm(val, axis = 0),2)
+            mus = mus + (self.eta_dual/self.epsilon)*(np.power(np.linalg.norm(val, axis = 0),2)
                                      -np.ones(len(self.betaIndependent))*self.epsilon**2)
             # Make it positive
             mus = np.maximum(mus,0)
             # Update Values
             lambdas, a = self.getLambdaA(mus)
+            
             for i in range(len(self.betaIndependent)):
                 theta_g_aux = a*(theta_g+theta_i@lambdas)
-                theta_i_aux = np.multiply(theta_i, (1-lambdas))
-                + theta_g_aux[:,np.newaxis]@lambdas[np.newaxis,:]
+                theta_i_aux = np.multiply(theta_i, (1-lambdas)) + theta_g_aux[:,np.newaxis]@lambdas[np.newaxis,:]
         # Assign values
         self.betaCentral = theta_g_aux[0]
         self.gammaCentral = theta_g_aux[1]
         for i in range(len(self.betaIndependent)):
             self.betaIndependent[i] = theta_i_aux[0,i]
             self.gammaIndependent[i] = theta_i_aux[1,i]
+
+        estimators = np.array([self.betaIndependent, self.gammaIndependent])
+        estimator_cl = np.array([self.betaCentral, self.gammaCentral])
+        # print(np.linalg.norm(estimators-estimator_cl[:,np.newaxis], axis=0))
+        # print('mus',mus)
         pass
 
     def fitParametric(self, datasets, epsilon):
@@ -176,7 +182,7 @@ class estimatorCovid:
         # R_0 = \beta / \gamma
         self.betaIndependent = [self.beta for i in range(len(datasets))]
         self.gammaIndependent = [self.gamma for i in range(len(datasets))]
-        self.lambdas = [0 for i in range(len(datasets))]
+        self.lambdas = [0. for i in range(len(datasets))]
         
         self.betaCentral = self.beta
         self.gammaCentral = self.gamma
@@ -212,9 +218,14 @@ class estimatorCovid:
                 nablaBetaCentAccum = nablaBetaCentAccum + nablaBetaCent
                 nablaGammaCentAccum = nablaGammaCentAccum + nablaGammaCent
                 if e%10 == 0:
-                    self.lambdas[idx] = self.lambdas[idx] + self.eta_dual/population*(np.linalg.norm(roll-rollCentral)**2-self.epsilon**2)
+                    self.lambdas[idx] = self.lambdas[idx] + self.eta_dual*(np.linalg.norm(roll-rollCentral)**2/population-self.epsilon**2)
                     self.lambdas[idx] = np.maximum(self.lambdas[idx],0)
-                    # print(e,self.lambdas)
+                    # print(f"epoch{e}, index {idx}, lambdas {self.lambdas[idx]}, constraint {np.linalg.norm(roll-rollCentral)**2/population}")
+                          
+                        #   self.eta_dual/population*(np.linalg.norm(roll-rollCentral)**2-self.epsilon**2), 
+                        #   self.eta_dual, 
+                        #   population)
+            
             # Update the centralized
             self.betaCentral = self.betaCentral - self.eta * nablaBetaCentAccum
             self.gammaCentral = self.gammaCentral - self.eta * nablaGammaCentAccum

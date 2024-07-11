@@ -1,0 +1,11 @@
+ - Normalize before hand
+ - Error as a percentage - normalize per population
+ - CL should be better than both centralized/independent 
+    - Interpret the constraint values
+    - Take 4 weeks
+ - Functional is wrong
+ - Get objective function -> test/train [sum of all countries]\
+
+ - check the parametric projection
+ - Check that lambdas converge in functional and constraints are satisfied
+   - Increase the dual eta update - functional
