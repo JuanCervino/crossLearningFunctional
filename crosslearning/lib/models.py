@@ -26,6 +26,7 @@ class estimatorCovid:
         rollout[:,0] = x_0
 
         for i in range(1,steps):
+            # Predict SIR_T+1 given SIR_T
             rollout[:,i] = self.getUpdate(rollout[:,i-1])
 
         return rollout
@@ -34,11 +35,24 @@ class estimatorCovid:
         nabla = np.zeros(2,) # beta, gamma
         delta = roll[:, 1:] - X[:, 1:] 
         # print('delta', delta.shape,roll.shape)
+        # TODO: FIX this bug, needs to accumulate
+        # S_T+1 - S_T = -DeltaT beta IS
         dSdBeta = -(self.T/self.population)*np.multiply(X[0,:-1],X[1,:-1])
-        dRdGamma = X[1,1:]
+        dIdBeta = (self.T/self.population)*np.multiply(X[0,:-1],X[1,:-1])
+        dRdBeta = 0 # check dimensions
 
-        nabla[0] = np.sum(np.multiply(delta[0,:], dSdBeta) )
-        nabla[1] = np.sum(np.multiply(delta[2,:], dRdGamma) )
+        # I_T+1 - I_T = DeltaT gamma I
+        dSdGamma = 0 # check dimensions
+        dIdGamma = -X[1,1:]
+        dRdGamma = X[1,1:]
+        
+        nabla[0] = np.sum(np.multiply(delta[0,:], dSdBeta) ) \
+                    + np.sum(np.multiply(delta[1,:], dIdBeta) )\
+                    + np.sum(np.multiply(delta[2,:], dRdBeta) )
+        
+        nabla[1] = np.sum(np.multiply(delta[0,:], dSdGamma) )\
+                    + np.sum(np.multiply(delta[1,:], dIdGamma) )\
+                    + np.sum(np.multiply(delta[2,:], dRdGamma) )
         return nabla
 
     def fitIndependent(self, X):
@@ -156,6 +170,7 @@ class estimatorCovid:
                 self.gammaIndependent[idx] = self.gammaIndependent[idx] - self.eta_cent[idx] * nablaGamma
 
             self.projectParametric()
+            # see Algorithm 2 in seas.upenn.edu/~jcervino/pubs/2021eusipco.pdf
         pass
 
     def evaluateConstraint(self, datasets):
